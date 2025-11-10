@@ -53,11 +53,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/supabase/stripe-sync-engine.git"
+    "url": "https://github.com/ashutoshpw/stripe-sync-engine.git"
   },
-  "homepage": "https://github.com/supabase/stripe-sync-engine#readme",
+  "homepage": "https://github.com/ashutoshpw/stripe-sync-engine#readme",
   "bugs": {
-    "url": "https://github.com/supabase/stripe-sync-engine/issues"
+    "url": "https://github.com/ashutoshpw/stripe-sync-engine/issues"
   },
   "keywords": [
     "stripe",
