@@ -2,12 +2,19 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "declaration": true,
     "outDir": "dist",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "strict": true
+    "strict": true,
+    "types": ["vitest", "node"],
+    "paths": {
+      "vitest": ["./node_modules/vitest"],
+      "stripe": ["./node_modules/stripe"],
+      "stripe/*": ["./node_modules/stripe/*"],
+      "vitest/*": ["./node_modules/vitest/*"]
+    }
   },
   "include": ["src/**/*"]
 }

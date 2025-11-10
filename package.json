@@ -19,7 +19,12 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean",
     "build": "tsup src/index.ts --format esm,cjs --dts && cp -r src/database/migrations dist/migrations",
-    "lint": "eslint src --ext .ts"
+    "lint": "biome lint",
+    "format": "biome format --write",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "files": [
     "dist"
@@ -33,8 +38,15 @@
     "stripe": "> 11"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.3.4",
+    "@types/node": "^24.10.0",
     "@types/pg": "^8.15.5",
-    "@types/yesql": "^4.1.4"
+    "@types/yesql": "^4.1.4",
+    "@vitest/ui": "^4.0.8",
+    "pg-mem": "^3.0.5",
+    "stripe": "^19.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
   },
   "repository": {
     "type": "git",
@@ -54,5 +66,6 @@
     "database",
     "typescript"
   ],
-  "author": "Supabase <https://supabase.com/>"
+  "author": "Supabase <https://supabase.com/>",
+  "packageManager": "pnpm@10.21.0+sha512.da3337267e400fdd3d479a6c68079ac6db01d8ca4f67572083e722775a796788a7a9956613749e000fac20d424b594f7a791a5f4e2e13581c5ef947f26968a40"
 }

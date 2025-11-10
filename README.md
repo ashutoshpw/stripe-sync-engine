@@ -1,5 +1,7 @@
 # Stripe Sync Engine
 
+Forked from https://github.com/supabase/stripe-sync-engine.
+
 ![GitHub License](https://img.shields.io/github/license/supabase/stripe-sync-engine)
 ![NPM Version](https://img.shields.io/npm/v/%40supabase%2Fstripe-sync-engine)
 
@@ -98,3 +100,8 @@ await sync.syncBackfill({
 
 > **Note:**
 > For large Stripe accounts (more than 10,000 objects), it is recommended to write a script that loops through each day and sets the `created` date filters to the start and end of day. This avoids timeouts and memory issues when syncing large datasets.
+
+## Development
+
+- Lint the project with `pnpm lint` (Biome).
+- Format source files with `pnpm format`.

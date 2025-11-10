@@ -28,11 +28,11 @@ export class PostgresClient {
     return this.pool.query(text, params)
   }
 
-  async upsertMany<
-    T extends {
-      [Key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
-    },
-  >(entries: T[], table: string, tableSchema: EntitySchema): Promise<T[]> {
+  async upsertMany<T extends Record<string, unknown>>(
+    entries: T[],
+    table: string,
+    tableSchema: EntitySchema
+  ): Promise<T[]> {
     if (!entries.length) return []
 
     // Max 5 in parallel to avoid exhausting connection pool
@@ -61,11 +61,12 @@ export class PostgresClient {
     return results.flatMap((it) => it.rows)
   }
 
-  async upsertManyWithTimestampProtection<
-    T extends {
-      [Key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
-    },
-  >(entries: T[], table: string, tableSchema: EntitySchema, syncTimestamp?: string): Promise<T[]> {
+  async upsertManyWithTimestampProtection<T extends Record<string, unknown>>(
+    entries: T[],
+    table: string,
+    tableSchema: EntitySchema,
+    syncTimestamp?: string
+  ): Promise<T[]> {
     const timestamp = syncTimestamp || new Date().toISOString()
 
     if (!entries.length) return []
@@ -215,18 +216,14 @@ export class PostgresClient {
    * }
    */
 
-  private cleanseArrayField(obj: {
-    [Key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  }): {
-    [Key: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  } {
+  private cleanseArrayField(obj: Record<string, unknown>): Record<string, unknown> {
     const cleansed = { ...obj }
-    Object.keys(cleansed).map((k) => {
-      const data = cleansed[k]
+    for (const key of Object.keys(cleansed)) {
+      const data = cleansed[key]
       if (Array.isArray(data)) {
-        cleansed[k] = JSON.stringify(data)
+        cleansed[key] = JSON.stringify(data)
       }
-    })
+    }
     return cleansed
   }
 }

@@ -1,4 +1,4 @@
-export { StripeSync } from './stripeSync'
+export { StripeSync } from './stripe-sync'
 
 export type * from './types'
 
