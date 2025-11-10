@@ -1,6 +1,6 @@
 {
-  "name": "@supabase/stripe-sync-engine",
-  "version": "0.0.0",
+  "name": "stripe-sync-engine",
+  "version": "0.0.1",
   "private": false,
   "description": "Stripe Sync Engine to sync Stripe data based on webhooks to Postgres",
   "type": "module",
@@ -44,7 +44,10 @@
     "@types/yesql": "^4.1.4",
     "@vitest/ui": "^4.0.8",
     "pg-mem": "^3.0.5",
+    "pino": "^10.1.0",
+    "rimraf": "^6.1.0",
     "stripe": "^19.0.0",
+    "tsup": "^8.5.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.8"
   },
