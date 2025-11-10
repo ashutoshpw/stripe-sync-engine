@@ -2,8 +2,7 @@
 
 Forked from https://github.com/supabase/stripe-sync-engine.
 
-![GitHub License](https://img.shields.io/github/license/supabase/stripe-sync-engine)
-![NPM Version](https://img.shields.io/npm/v/%40supabase%2Fstripe-sync-engine)
+[![Test](https://github.com/ashutoshpw/stripe-sync-engine/actions/workflows/test.yml/badge.svg)](https://github.com/ashutoshpw/stripe-sync-engine/actions/workflows/test.yml)
 
 A TypeScript library to synchronize Stripe data into a PostgreSQL database, designed for use in Node.js backends and serverless environments.
 
