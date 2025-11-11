@@ -1,0 +1,24 @@
+{
+  "name": "stripe-sync-engine-hono-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "start": "NODE_ENV=production pnpm dev",
+    "migrate": "tsx scripts/run-migrations.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.3",
+    "dotenv": "^16.4.5",
+    "hono": "^4.5.11",
+    "stripe": "^19.0.0",
+    "stripe-sync-engine": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.4",
+    "tsx": "^4.17.0",
+    "typescript": "^5.6.3"
+  }
+}
+

@@ -1,0 +1,9 @@
+name = "stripe-sync-engine-cloudflare-worker-example"
+main = "src/index.ts"
+compatibility_date = "2024-11-12"
+
+[vars]
+# STRIPE_SECRET_KEY = ""
+# STRIPE_WEBHOOK_SECRET = ""
+# FORWARD_SYNC_URL = ""
+
