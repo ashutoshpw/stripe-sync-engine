@@ -1,0 +1,28 @@
+{
+  "name": "stripe-sync-engine-nextjs-example",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "migrate": "tsx scripts/run-migrations.ts"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "next": "^16.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "stripe": "^19.0.0",
+    "stripe-sync-engine": "file:../.."
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tsx": "^4.17.0",
+    "typescript": "^5.6.3"
+  }
+}
+
