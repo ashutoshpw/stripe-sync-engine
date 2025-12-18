@@ -15,11 +15,11 @@ create table
         source_transfer_reversal text,
         status text,
         transfer_reversal text,
-        updated_at timestamptz default timezone('utc'::text, now()) not null
+        updated_at timestamptz default timezone('utc'::text, now()) not null,
+        last_synced_at timestamptz
     );
 
 create index stripe_refunds_charge_idx on "stripe"."refunds" using btree (charge);
-
 create index stripe_refunds_payment_intent_idx on "stripe"."refunds" using btree (payment_intent);
 
 create trigger handle_updated_at

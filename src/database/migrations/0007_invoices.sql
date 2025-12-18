@@ -1,13 +1,3 @@
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'invoice_status') THEN
-        create type "stripe"."invoice_status" as enum ('draft', 'open', 'paid', 'uncollectible', 'void');
-    END IF;
-END
-$$;
-
-
 create table if not exists "stripe"."invoices" (
   "id" text primary key,
   "object" text,
@@ -66,12 +56,22 @@ create table if not exists "stripe"."invoices" (
   "total_tax_amounts" jsonb,
   "transfer_data" jsonb,
   "webhooks_delivered_at" integer,
-
-  "customer" text references "stripe"."customers",
-  "subscription" text references "stripe"."subscriptions",
-  "payment_intent" text,  -- not yet implemented
-  "default_payment_method" text, -- not yet implemented
-  "default_source" text, -- not yet implemented
-  "on_behalf_of" text, -- not yet implemented
-  "charge" text -- not yet implemented
+  "customer" text,
+  "subscription" text,
+  "payment_intent" text,
+  "default_payment_method" text,
+  "default_source" text,
+  "on_behalf_of" text,
+  "charge" text,
+  "updated_at" timestamptz default timezone('utc'::text, now()) not null,
+  "last_synced_at" timestamptz
 );
+
+create trigger handle_updated_at
+    before update
+    on stripe.invoices
+    for each row
+    execute procedure set_updated_at();
+
+CREATE INDEX stripe_invoices_customer_idx ON "stripe"."invoices" USING btree (customer);
+CREATE INDEX stripe_invoices_subscription_idx ON "stripe"."invoices" USING btree (subscription);

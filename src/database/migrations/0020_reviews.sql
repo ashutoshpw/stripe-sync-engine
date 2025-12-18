@@ -14,11 +14,11 @@ create table
         payment_intent text,
         reason text,
         session text,
-        updated_at timestamptz default timezone('utc'::text, now()) not null
+        updated_at timestamptz default timezone('utc'::text, now()) not null,
+        last_synced_at timestamptz
     );
 
 create index stripe_reviews_charge_idx on "stripe"."reviews" using btree (charge);
-
 create index stripe_reviews_payment_intent_idx on "stripe"."reviews" using btree (payment_intent);
 
 create trigger handle_updated_at

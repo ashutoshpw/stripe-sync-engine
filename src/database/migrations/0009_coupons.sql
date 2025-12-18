@@ -15,5 +15,13 @@ create table if not exists "stripe".coupons (
     times_redeemed bigint,
     max_redemptions bigint,
     duration_in_months bigint,
-    percent_off_precise double precision
+    percent_off_precise double precision,
+    updated_at timestamptz default timezone('utc'::text, now()) not null,
+    last_synced_at timestamptz
 );
+
+create trigger handle_updated_at
+    before update
+    on stripe.coupons
+    for each row
+    execute procedure set_updated_at();

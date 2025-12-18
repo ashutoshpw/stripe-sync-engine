@@ -1,11 +1,3 @@
-do $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'subscription_schedule_status') THEN
-        create type "stripe"."subscription_schedule_status" as enum ('not_started', 'active', 'completed', 'released', 'canceled');
-    END IF;
-END
-$$;
-
 create table if not exists
     "stripe"."subscription_schedules" (
         id text primary key,
@@ -25,5 +17,6 @@ create table if not exists
         released_subscription text,
         status stripe.subscription_schedule_status not null,
         subscription text,
-        test_clock text
+        test_clock text,
+        last_synced_at timestamptz
     );

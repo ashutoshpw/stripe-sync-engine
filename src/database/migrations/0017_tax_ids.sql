@@ -8,7 +8,8 @@ create table if not exists
     "value" text,
     "created" integer not null,
     "livemode" boolean,
-    "owner" jsonb
+    "owner" jsonb,
+    last_synced_at timestamptz
   );
 
 create index stripe_tax_ids_customer_idx on "stripe"."tax_ids" using btree (customer);

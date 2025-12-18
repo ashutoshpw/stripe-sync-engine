@@ -11,7 +11,8 @@ create table if not exists "stripe"."setup_intents" (
     latest_attempt text,
     mandate text,
     single_use_mandate text,
-    on_behalf_of text
+    on_behalf_of text,
+    last_synced_at timestamptz
 );
 
 CREATE INDEX stripe_setup_intents_customer_idx ON "stripe"."setup_intents" USING btree (customer);

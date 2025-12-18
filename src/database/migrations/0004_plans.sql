@@ -1,13 +1,10 @@
 create table if not exists "stripe"."plans" (
     id text primary key,
     object text,
-    name text,
-    tiers jsonb,
     active boolean,
     amount bigint,
     created integer,
     product text,
-    updated integer,
     currency text,
     "interval" text,
     livemode boolean,
@@ -20,6 +17,12 @@ create table if not exists "stripe"."plans" (
     aggregate_usage text,
     transform_usage text,
     trial_period_days bigint,
-    statement_descriptor text,
-    statement_description text
+    "updated_at" timestamptz default timezone('utc'::text, now()) not null,
+    "last_synced_at" timestamptz
 );
+
+create trigger handle_updated_at
+    before update
+    on stripe.plans
+    for each row
+    execute procedure set_updated_at();

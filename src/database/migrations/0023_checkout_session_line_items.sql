@@ -21,4 +21,4 @@ create trigger handle_updated_at
     before update
     on stripe.checkout_session_line_items
     for each row
-    execute procedure set_updated_at(); 
+    execute procedure set_updated_at();

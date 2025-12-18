@@ -8,11 +8,11 @@ create table
         fraud_type text,
         livemode boolean,
         payment_intent text,
-        updated_at timestamptz default timezone('utc'::text, now()) not null
+        updated_at timestamptz default timezone('utc'::text, now()) not null,
+        last_synced_at timestamptz
     );
 
 create index stripe_early_fraud_warnings_charge_idx on "stripe"."early_fraud_warnings" using btree (charge);
-
 create index stripe_early_fraud_warnings_payment_intent_idx on "stripe"."early_fraud_warnings" using btree (payment_intent);
 
 create trigger handle_updated_at

@@ -35,7 +35,8 @@ create table if not exists "stripe"."payment_intents" (
   statement_descriptor_suffix text,
   status text,
   transfer_data jsonb,
-  transfer_group text
+  transfer_group text,
+  last_synced_at timestamptz
 );
 
 CREATE INDEX stripe_payment_intents_customer_idx ON "stripe"."payment_intents" USING btree (customer);

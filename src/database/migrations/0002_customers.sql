@@ -19,5 +19,14 @@ create table if not exists "stripe"."customers" (
   "livemode" boolean,
   "next_invoice_sequence" integer,
   "preferred_locales" jsonb,
-  "tax_exempt" text
+  "tax_exempt" text,
+  "deleted" boolean default false not null,
+  "updated_at" timestamptz default timezone('utc'::text, now()) not null,
+  "last_synced_at" timestamptz
 );
+
+create trigger handle_updated_at
+    before update
+    on stripe.customers
+    for each row
+    execute procedure set_updated_at();

@@ -13,5 +13,15 @@ create table if not exists "stripe"."products" (
   "statement_descriptor" text,
   "unit_label" text,
   "updated" integer,
-  "url" text
+  "url" text,
+  "marketing_features" jsonb,
+  "default_price" text,
+  "updated_at" timestamptz default timezone('utc'::text, now()) not null,
+  "last_synced_at" timestamptz
 );
+
+create trigger handle_updated_at
+    before update
+    on stripe.products
+    for each row
+    execute procedure set_updated_at();

@@ -1,20 +1,3 @@
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'subscription_status') THEN
-        create type "stripe"."subscription_status" as enum (
-          'trialing',
-          'active',
-          'canceled',
-          'incomplete',
-          'incomplete_expired',
-          'past_due',
-          'unpaid'
-        );
-    END IF;
-END
-$$;
-
 create table if not exists "stripe"."subscriptions" (
   "id" text primary key,
   "object" text,
@@ -47,10 +30,16 @@ create table if not exists "stripe"."subscriptions" (
   "transfer_data" jsonb,
   "trial_end" jsonb,
   "trial_start" jsonb,
-
   "schedule" text,
-  "customer" text references "stripe"."customers",
-  "latest_invoice" text, -- not yet joined
-  "plan" text -- not yet joined
+  "customer" text,
+  "latest_invoice" text,
+  "plan" text,
+  "updated_at" timestamptz default timezone('utc'::text, now()) not null,
+  "last_synced_at" timestamptz
 );
 
+create trigger handle_updated_at
+    before update
+    on stripe.subscriptions
+    for each row
+    execute procedure set_updated_at();

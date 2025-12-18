@@ -6,7 +6,8 @@ create table if not exists "stripe"."payment_methods" (
     type text,
     billing_details jsonb,
     metadata jsonb,
-    card jsonb
+    card jsonb,
+    last_synced_at timestamptz
 );
 
 CREATE INDEX stripe_payment_methods_customer_idx ON "stripe"."payment_methods" USING btree (customer);

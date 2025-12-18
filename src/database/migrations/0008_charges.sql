@@ -1,8 +1,6 @@
-
 create table if not exists "stripe".charges (
     id text primary key,
     object text,
-    card jsonb,
     paid boolean,
     "order" text,
     amount bigint,
@@ -38,6 +36,13 @@ create table if not exists "stripe".charges (
     source_transfer text,
     balance_transaction text,
     statement_descriptor text,
-    statement_description text,
-    payment_method_details jsonb
+    payment_method_details jsonb,
+    updated_at timestamptz default timezone('utc'::text, now()) not null,
+    last_synced_at timestamptz
 );
+
+create trigger handle_updated_at
+    before update
+    on stripe.charges
+    for each row
+    execute procedure set_updated_at();

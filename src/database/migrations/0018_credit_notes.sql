@@ -28,7 +28,8 @@ create table if not exists
     total integer,
     total_excluding_tax integer,
     type text,
-    voided_at text
+    voided_at text,
+    last_synced_at timestamptz
   );
 
 create index stripe_credit_notes_customer_idx on "stripe"."credit_notes" using btree (customer);

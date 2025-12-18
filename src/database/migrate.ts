@@ -2,10 +2,41 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { ConnectionOptions } from "node:tls";
+import { fileURLToPath } from "node:url";
 import { Client } from "pg";
 import { migrate } from "pg-node-migrations";
 import pino from "pino";
 import { BASE_TABLE_NAMES, normalizePrefix } from "./tableNames";
+
+function getMigrationsDirectory(): string {
+  let migrationsPath: string;
+
+  if (typeof import.meta.url !== "undefined") {
+    const currentFile = fileURLToPath(import.meta.url);
+    const currentDir = path.dirname(currentFile);
+    migrationsPath = path.resolve(currentDir, "../migrations");
+    if (fs.existsSync(migrationsPath)) {
+      return migrationsPath;
+    }
+    migrationsPath = path.resolve(currentDir, "./migrations");
+    if (fs.existsSync(migrationsPath)) {
+      return migrationsPath;
+    }
+  }
+
+  if (typeof __dirname !== "undefined") {
+    migrationsPath = path.resolve(__dirname, "../migrations");
+    if (fs.existsSync(migrationsPath)) {
+      return migrationsPath;
+    }
+    migrationsPath = path.resolve(__dirname, "./migrations");
+    if (fs.existsSync(migrationsPath)) {
+      return migrationsPath;
+    }
+  }
+
+  throw new Error("Unable to find migrations directory");
+}
 
 const DEFAULT_MIGRATION_TABLE_NAME = "stripe_migrations";
 
@@ -26,6 +57,12 @@ type MigrationConfig = {
    * Default: 'stripe_migrations'
    */
   migrationTableName?: string;
+  /**
+   * If true, drops the entire schema (and all its objects) before running migrations.
+   * Useful for development/testing to start with a clean slate.
+   * Default: false
+   */
+  resetSchema?: boolean;
 };
 
 /**
@@ -141,14 +178,21 @@ export async function runMigrations(config: MigrationConfig): Promise<void> {
     // Run migrations
     await client.connect();
 
+    if (config.resetSchema) {
+      config.logger?.info(`Resetting schema "${config.schema}"...`);
+      await client.query(`DROP SCHEMA IF EXISTS "${config.schema}" CASCADE;`);
+      config.logger?.info(`Schema "${config.schema}" dropped`);
+    }
+
     // Ensure schema exists, not doing it via migration to not break current migration checksums
     await client.query(`CREATE SCHEMA IF NOT EXISTS ${config.schema};`);
 
     config.logger?.info("Running migrations");
 
-    await connectAndMigrate(client, path.resolve(__dirname, "./migrations"), config);
+    await connectAndMigrate(client, getMigrationsDirectory(), config);
   } catch (err) {
     config.logger?.error(err, "Error running migrations");
+    throw err;
   } finally {
     await client.end();
     config.logger?.info("Finished migrations");

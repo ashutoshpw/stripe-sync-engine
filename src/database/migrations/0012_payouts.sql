@@ -26,5 +26,13 @@ create table if not exists "stripe".payouts (
     balance_transaction text,
     statement_descriptor text,
     statement_description text,
-    failure_balance_transaction text
+    failure_balance_transaction text,
+    updated_at timestamptz default timezone('utc'::text, now()) not null,
+    last_synced_at timestamptz
 );
+
+create trigger handle_updated_at
+    before update
+    on stripe.payouts
+    for each row
+    execute procedure set_updated_at();
