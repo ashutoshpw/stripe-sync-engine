@@ -1,8 +1,8 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { setupIntentsSchema } from '../../schemas/setup_intents'
-import { getUniqueIds } from '../utils'
-import { backfillCustomers } from './customers'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { setupIntentsSchema } from "../../schemas/setup_intents";
+import { getUniqueIds } from "../utils";
+import { backfillCustomers } from "./customers";
 
 export async function upsertSetupIntents(
   context: StripeSyncContext,
@@ -11,14 +11,13 @@ export async function upsertSetupIntents(
   syncTimestamp?: string
 ): Promise<Stripe.SetupIntent[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
-    await backfillCustomers(context, getUniqueIds(setupIntents, 'customer'))
+    await backfillCustomers(context, getUniqueIds(setupIntents, "customer"));
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     setupIntents,
-    'setup_intents',
+    context.postgresClient.getTableName("setup_intents"),
     setupIntentsSchema,
     syncTimestamp
-  )
+  );
 }
-

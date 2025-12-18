@@ -1,9 +1,9 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { earlyFraudWarningSchema } from '../../schemas/early_fraud_warning'
-import { getUniqueIds } from '../utils'
-import { backfillPaymentIntents } from './payment-intents'
-import { backfillCharges } from './charges'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { earlyFraudWarningSchema } from "../../schemas/early_fraud_warning";
+import { getUniqueIds } from "../utils";
+import { backfillPaymentIntents } from "./payment-intents";
+import { backfillCharges } from "./charges";
 
 export async function upsertEarlyFraudWarning(
   context: StripeSyncContext,
@@ -13,16 +13,15 @@ export async function upsertEarlyFraudWarning(
 ): Promise<Stripe.Radar.EarlyFraudWarning[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
     await Promise.all([
-      backfillPaymentIntents(context, getUniqueIds(earlyFraudWarnings, 'payment_intent')),
-      backfillCharges(context, getUniqueIds(earlyFraudWarnings, 'charge')),
-    ])
+      backfillPaymentIntents(context, getUniqueIds(earlyFraudWarnings, "payment_intent")),
+      backfillCharges(context, getUniqueIds(earlyFraudWarnings, "charge")),
+    ]);
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     earlyFraudWarnings,
-    'early_fraud_warnings',
+    context.postgresClient.getTableName("early_fraud_warnings"),
     earlyFraudWarningSchema,
     syncTimestamp
-  )
+  );
 }
-

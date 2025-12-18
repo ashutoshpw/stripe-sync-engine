@@ -1,9 +1,9 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { paymentIntentSchema } from '../../schemas/payment_intent'
-import { getUniqueIds, fetchMissingEntities } from '../utils'
-import { backfillCustomers } from './customers'
-import { backfillInvoices } from './invoices'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { paymentIntentSchema } from "../../schemas/payment_intent";
+import { getUniqueIds, fetchMissingEntities } from "../utils";
+import { backfillCustomers } from "./customers";
+import { backfillInvoices } from "./invoices";
 
 export async function upsertPaymentIntents(
   context: StripeSyncContext,
@@ -13,17 +13,17 @@ export async function upsertPaymentIntents(
 ): Promise<Stripe.PaymentIntent[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
     await Promise.all([
-      backfillCustomers(context, getUniqueIds(paymentIntents, 'customer')),
-      backfillInvoices(context, getUniqueIds(paymentIntents, 'invoice')),
-    ])
+      backfillCustomers(context, getUniqueIds(paymentIntents, "customer")),
+      backfillInvoices(context, getUniqueIds(paymentIntents, "invoice")),
+    ]);
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     paymentIntents,
-    'payment_intents',
+    context.postgresClient.getTableName("payment_intents"),
     paymentIntentSchema,
     syncTimestamp
-  )
+  );
 }
 
 export async function backfillPaymentIntents(
@@ -31,12 +31,11 @@ export async function backfillPaymentIntents(
   paymentIntentIds: string[]
 ) {
   const missingIds = await context.postgresClient.findMissingEntries(
-    'payment_intents',
+    context.postgresClient.getTableName("payment_intents"),
     paymentIntentIds
-  )
+  );
 
-  await fetchMissingEntities(missingIds, (id) =>
-    context.stripe.paymentIntents.retrieve(id)
-  ).then((paymentIntents) => upsertPaymentIntents(context, paymentIntents))
+  await fetchMissingEntities(missingIds, (id) => context.stripe.paymentIntents.retrieve(id)).then(
+    (paymentIntents) => upsertPaymentIntents(context, paymentIntents)
+  );
 }
-

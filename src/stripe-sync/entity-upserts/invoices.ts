@@ -1,9 +1,9 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { invoiceSchema } from '../../schemas/invoice'
-import { getUniqueIds, fetchMissingEntities, expandEntity } from '../utils'
-import { backfillCustomers } from './customers'
-import { backfillSubscriptions } from './subscriptions'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { invoiceSchema } from "../../schemas/invoice";
+import { getUniqueIds, fetchMissingEntities, expandEntity } from "../utils";
+import { backfillCustomers } from "./customers";
+import { backfillSubscriptions } from "./subscriptions";
 
 export async function upsertInvoices(
   context: StripeSyncContext,
@@ -13,27 +13,29 @@ export async function upsertInvoices(
 ): Promise<Stripe.Invoice[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
     await Promise.all([
-      backfillCustomers(context, getUniqueIds(invoices, 'customer')),
-      backfillSubscriptions(context, getUniqueIds(invoices, 'subscription')),
-    ])
+      backfillCustomers(context, getUniqueIds(invoices, "customer")),
+      backfillSubscriptions(context, getUniqueIds(invoices, "subscription")),
+    ]);
   }
 
-  await expandEntity(context, invoices, 'lines', (id) =>
+  await expandEntity(context, invoices, "lines", (id) =>
     context.stripe.invoices.listLineItems(id, { limit: 100 })
-  )
+  );
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     invoices,
-    'invoices',
+    context.postgresClient.getTableName("invoices"),
     invoiceSchema,
     syncTimestamp
-  )
+  );
 }
 
 export async function backfillInvoices(context: StripeSyncContext, invoiceIds: string[]) {
-  const missingIds = await context.postgresClient.findMissingEntries('invoices', invoiceIds)
+  const missingIds = await context.postgresClient.findMissingEntries(
+    context.postgresClient.getTableName("invoices"),
+    invoiceIds
+  );
   await fetchMissingEntities(missingIds, (id) => context.stripe.invoices.retrieve(id)).then(
     (entries) => upsertInvoices(context, entries)
-  )
+  );
 }
-

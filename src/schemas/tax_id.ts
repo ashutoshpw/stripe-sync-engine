@@ -1,15 +1,15 @@
-import type { EntitySchema } from './types'
+import type { EntitySchema } from "./types";
 
 export const taxIdSchema: EntitySchema = {
   properties: [
-    'id',
-    'country',
-    'customer',
-    'type',
-    'value',
-    'object',
-    'created',
-    'livemode',
-    'owner',
+    "id",
+    "country",
+    "customer",
+    "type",
+    "value",
+    "object",
+    "created",
+    "livemode",
+    "owner",
   ],
-} as const
+} as const;

@@ -55,6 +55,7 @@ await sync.processWebhook(payload, signature)
 | ------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `databaseUrl`                   | string  | **Deprecated:** Use `poolConfig` with a connection string instead.                                                                                                                                                                                                                                       |
 | `schema`                        | string  | Database schema name (default: `stripe`)                                                                                                                                                                                                                                                                 |
+| `tablePrefix`                   | string  | Optional prefix for all table names. An underscore is auto-appended if not present. Example: `'billing'` results in `billing_products`, `billing_customers`, etc. (default: empty string)                                                                                                               |
 | `stripeSecretKey`               | string  | Stripe secret key                                                                                                                                                                                                                                                                                        |
 | `stripeWebhookSecret`           | string  | Stripe webhook signing secret                                                                                                                                                                                                                                                                            |
 | `stripeApiVersion`              | string  | Stripe API version (default: `2020-08-27`)                                                                                                                                                                                                                                                               |
@@ -76,7 +77,35 @@ Migrations are included in the `db/migrations` directory. You can run them using
 ```ts
 import { runMigrations } from 'stripe-sync-engine'
 
-await runMigrations({ databaseUrl: 'postgres://...' })
+await runMigrations({
+  databaseUrl: 'postgres://...',
+  schema: 'stripe', // optional, defaults to 'stripe'
+  tablePrefix: 'billing', // optional, prefixes all tables (e.g., billing_products)
+  migrationTableName: 'stripe_migrations', // optional, defaults to 'stripe_migrations'
+})
+```
+
+### Migration Configuration
+
+| Option               | Type   | Description                                                                                                          |
+| -------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| `databaseUrl`        | string | PostgreSQL connection string                                                                                         |
+| `schema`             | string | Database schema name (default: `stripe`)                                                                             |
+| `tablePrefix`        | string | Optional prefix for all table names. An underscore is auto-appended if not present. (default: empty string)          |
+| `migrationTableName` | string | Name of the table used to track migrations (default: `stripe_migrations`)                                            |
+| `ssl`                | object | SSL connection options                                                                                               |
+| `logger`             | Logger | Logger instance (pino)                                                                                               |
+
+## Breaking Changes
+
+### Migration Table Rename
+
+Starting from this version, the migration tracking table has been renamed from `migrations` to `stripe_migrations` to avoid conflicts with your application's own migrations table.
+
+**Existing users must rename their migrations table before upgrading:**
+
+```sql
+ALTER TABLE "stripe"."migrations" RENAME TO "stripe_migrations";
 ```
 
 ## Backfilling and Syncing Data

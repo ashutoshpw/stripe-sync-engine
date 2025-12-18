@@ -89,6 +89,7 @@ export function getStripeSync(): StripeSync {
       stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET,
       stripeApiVersion: process.env.STRIPE_API_VERSION || "2023-10-16",
       schema: "stripe", // Database schema name (default: "stripe")
+      tablePrefix: "", // Optional: prefix for all table names (e.g., "billing" -> "billing_products")
       autoExpandLists: true, // Fetch all list items from Stripe (not just default 10)
       backfillRelatedEntities: true, // Ensure related entities are present for foreign key integrity
     });
@@ -116,6 +117,9 @@ async function main() {
   
   await runMigrations({
     databaseUrl: process.env.DATABASE_URL,
+    schema: "stripe", // optional, defaults to "stripe"
+    tablePrefix: "", // optional, prefix for all table names (e.g., "billing" -> "billing_products")
+    migrationTableName: "stripe_migrations", // optional, defaults to "stripe_migrations"
   });
 
   console.log("✅ Stripe migrations completed successfully");

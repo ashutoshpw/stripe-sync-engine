@@ -1,4 +1,4 @@
-import { vi } from 'vitest'
+import { vi } from "vitest";
 
 export function createPostgresClientMock() {
   return {
@@ -6,5 +6,5 @@ export function createPostgresClientMock() {
     delete: vi.fn(async () => true),
     query: vi.fn(async () => ({ rows: [], rowCount: 0 })),
     findMissingEntries: vi.fn(async () => []),
-  }
+  };
 }

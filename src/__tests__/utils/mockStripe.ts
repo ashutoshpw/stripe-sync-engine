@@ -1,17 +1,17 @@
 // @ts-nocheck
 /// <reference types="vitest" />
-import { vi } from 'vitest'
+import { vi } from "vitest";
 
-export type AsyncIterableLike<T> = AsyncIterable<T>
+export type AsyncIterableLike<T> = AsyncIterable<T>;
 
 export function createAsyncIterable<T>(items: T[]): AsyncIterableLike<T> {
   return {
     async *[Symbol.asyncIterator]() {
       for (const item of items) {
-        yield item
+        yield item;
       }
     },
-  }
+  };
 }
 
 export function createStripeMock() {
@@ -97,5 +97,5 @@ export function createStripeMock() {
         list: vi.fn(() => createAsyncIterable<unknown>([])),
       },
     },
-  }
+  };
 }

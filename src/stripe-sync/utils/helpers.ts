@@ -1,22 +1,22 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
 
 export function getUniqueIds<T>(entries: T[], key: string): string[] {
   const set = new Set(
     entries
       .map((subscription) => subscription?.[key as keyof T]?.toString())
       .filter((it): it is string => Boolean(it))
-  )
+  );
 
-  return Array.from(set)
+  return Array.from(set);
 }
 
 export function chunkArray<T>(array: T[], chunkSize: number): T[][] {
-  const result: T[][] = []
+  const result: T[][] = [];
   for (let i = 0; i < array.length; i += chunkSize) {
-    result.push(array.slice(i, i + chunkSize))
+    result.push(array.slice(i, i + chunkSize));
   }
-  return result
+  return result;
 }
 
 export async function expandEntity<
@@ -29,22 +29,22 @@ export async function expandEntity<
   property: P,
   listFn: (id: string) => Stripe.ApiListPromise<K>
 ) {
-  if (!context.config.autoExpandLists) return
+  if (!context.config.autoExpandLists) return;
 
   for (const entity of entities) {
-    if (!entity.id) continue
+    if (!entity.id) continue;
 
     if (entity[property]?.has_more) {
-      const allData: K[] = []
+      const allData: K[] = [];
       for await (const fetchedEntity of listFn(entity.id)) {
-        allData.push(fetchedEntity)
+        allData.push(fetchedEntity);
       }
 
       entity[property] = {
         ...entity[property],
         data: allData,
         has_more: false,
-      }
+      };
     }
   }
 }
@@ -53,15 +53,14 @@ export async function fetchMissingEntities<T>(
   ids: string[],
   fetch: (id: string) => Promise<Stripe.Response<T>>
 ): Promise<T[]> {
-  if (!ids.length) return []
+  if (!ids.length) return [];
 
-  const entities: T[] = []
+  const entities: T[] = [];
 
   for (const id of ids) {
-    const entity = await fetch(id)
-    entities.push(entity)
+    const entity = await fetch(id);
+    entities.push(entity);
   }
 
-  return entities
+  return entities;
 }
-

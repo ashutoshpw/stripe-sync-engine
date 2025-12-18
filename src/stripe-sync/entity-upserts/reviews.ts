@@ -1,9 +1,9 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { reviewSchema } from '../../schemas/review'
-import { getUniqueIds } from '../utils'
-import { backfillPaymentIntents } from './payment-intents'
-import { backfillCharges } from './charges'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { reviewSchema } from "../../schemas/review";
+import { getUniqueIds } from "../utils";
+import { backfillPaymentIntents } from "./payment-intents";
+import { backfillCharges } from "./charges";
 
 export async function upsertReviews(
   context: StripeSyncContext,
@@ -13,16 +13,15 @@ export async function upsertReviews(
 ): Promise<Stripe.Review[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
     await Promise.all([
-      backfillPaymentIntents(context, getUniqueIds(reviews, 'payment_intent')),
-      backfillCharges(context, getUniqueIds(reviews, 'charge')),
-    ])
+      backfillPaymentIntents(context, getUniqueIds(reviews, "payment_intent")),
+      backfillCharges(context, getUniqueIds(reviews, "charge")),
+    ]);
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     reviews,
-    'reviews',
+    context.postgresClient.getTableName("reviews"),
     reviewSchema,
     syncTimestamp
-  )
+  );
 }
-

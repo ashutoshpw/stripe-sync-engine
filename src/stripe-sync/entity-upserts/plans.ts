@@ -1,8 +1,8 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { planSchema } from '../../schemas/plan'
-import { getUniqueIds } from '../utils'
-import { backfillProducts } from './products'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { planSchema } from "../../schemas/plan";
+import { getUniqueIds } from "../utils";
+import { backfillProducts } from "./products";
 
 export async function upsertPlans(
   context: StripeSyncContext,
@@ -11,18 +11,17 @@ export async function upsertPlans(
   syncTimestamp?: string
 ): Promise<Stripe.Plan[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
-    await backfillProducts(context, getUniqueIds(plans, 'product'))
+    await backfillProducts(context, getUniqueIds(plans, "product"));
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     plans,
-    'plans',
+    context.postgresClient.getTableName("plans"),
     planSchema,
     syncTimestamp
-  )
+  );
 }
 
 export async function deletePlan(context: StripeSyncContext, id: string): Promise<boolean> {
-  return context.postgresClient.delete('plans', id)
+  return context.postgresClient.delete("plans", id);
 }
-

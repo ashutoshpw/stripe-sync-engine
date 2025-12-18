@@ -1,8 +1,8 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { subscriptionScheduleSchema } from '../../schemas/subscription_schedules'
-import { getUniqueIds, fetchMissingEntities } from '../utils'
-import { backfillCustomers } from './customers'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { subscriptionScheduleSchema } from "../../schemas/subscription_schedules";
+import { getUniqueIds, fetchMissingEntities } from "../utils";
+import { backfillCustomers } from "./customers";
 
 export async function upsertSubscriptionSchedules(
   context: StripeSyncContext,
@@ -11,19 +11,19 @@ export async function upsertSubscriptionSchedules(
   syncTimestamp?: string
 ): Promise<Stripe.SubscriptionSchedule[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
-    const customerIds = getUniqueIds(subscriptionSchedules, 'customer')
+    const customerIds = getUniqueIds(subscriptionSchedules, "customer");
 
-    await backfillCustomers(context, customerIds)
+    await backfillCustomers(context, customerIds);
   }
 
   const rows = await context.postgresClient.upsertManyWithTimestampProtection(
     subscriptionSchedules,
-    'subscription_schedules',
+    context.postgresClient.getTableName("subscription_schedules"),
     subscriptionScheduleSchema,
     syncTimestamp
-  )
+  );
 
-  return rows
+  return rows;
 }
 
 export async function backfillSubscriptionSchedules(
@@ -31,12 +31,11 @@ export async function backfillSubscriptionSchedules(
   subscriptionIds: string[]
 ) {
   const missingSubscriptionIds = await context.postgresClient.findMissingEntries(
-    'subscription_schedules',
+    context.postgresClient.getTableName("subscription_schedules"),
     subscriptionIds
-  )
+  );
 
   await fetchMissingEntities(missingSubscriptionIds, (id) =>
     context.stripe.subscriptionSchedules.retrieve(id)
-  ).then((subscriptionSchedules) => upsertSubscriptionSchedules(context, subscriptionSchedules))
+  ).then((subscriptionSchedules) => upsertSubscriptionSchedules(context, subscriptionSchedules));
 }
-

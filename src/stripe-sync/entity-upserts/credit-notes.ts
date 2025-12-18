@@ -1,9 +1,9 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { creditNoteSchema } from '../../schemas/credit_note'
-import { getUniqueIds, expandEntity } from '../utils'
-import { backfillCustomers } from './customers'
-import { backfillInvoices } from './invoices'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { creditNoteSchema } from "../../schemas/credit_note";
+import { getUniqueIds, expandEntity } from "../utils";
+import { backfillCustomers } from "./customers";
+import { backfillInvoices } from "./invoices";
 
 export async function upsertCreditNotes(
   context: StripeSyncContext,
@@ -13,20 +13,19 @@ export async function upsertCreditNotes(
 ): Promise<Stripe.CreditNote[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
     await Promise.all([
-      backfillCustomers(context, getUniqueIds(creditNotes, 'customer')),
-      backfillInvoices(context, getUniqueIds(creditNotes, 'invoice')),
-    ])
+      backfillCustomers(context, getUniqueIds(creditNotes, "customer")),
+      backfillInvoices(context, getUniqueIds(creditNotes, "invoice")),
+    ]);
   }
 
-  await expandEntity(context, creditNotes, 'lines', (id) =>
+  await expandEntity(context, creditNotes, "lines", (id) =>
     context.stripe.creditNotes.listLineItems(id, { limit: 100 })
-  )
+  );
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     creditNotes,
-    'credit_notes',
+    context.postgresClient.getTableName("credit_notes"),
     creditNoteSchema,
     syncTimestamp
-  )
+  );
 }
-

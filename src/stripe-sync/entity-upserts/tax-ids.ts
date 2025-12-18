@@ -1,8 +1,8 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { taxIdSchema } from '../../schemas/tax_id'
-import { getUniqueIds } from '../utils'
-import { backfillCustomers } from './customers'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { taxIdSchema } from "../../schemas/tax_id";
+import { getUniqueIds } from "../utils";
+import { backfillCustomers } from "./customers";
 
 export async function upsertTaxIds(
   context: StripeSyncContext,
@@ -11,18 +11,17 @@ export async function upsertTaxIds(
   syncTimestamp?: string
 ): Promise<Stripe.TaxId[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
-    await backfillCustomers(context, getUniqueIds(taxIds, 'customer'))
+    await backfillCustomers(context, getUniqueIds(taxIds, "customer"));
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     taxIds,
-    'tax_ids',
+    context.postgresClient.getTableName("tax_ids"),
     taxIdSchema,
     syncTimestamp
-  )
+  );
 }
 
 export async function deleteTaxId(context: StripeSyncContext, id: string): Promise<boolean> {
-  return context.postgresClient.delete('tax_ids', id)
+  return context.postgresClient.delete("tax_ids", id);
 }
-

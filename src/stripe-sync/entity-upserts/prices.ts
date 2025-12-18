@@ -1,8 +1,8 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { priceSchema } from '../../schemas/price'
-import { getUniqueIds, fetchMissingEntities } from '../utils'
-import { backfillProducts } from './products'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { priceSchema } from "../../schemas/price";
+import { getUniqueIds, fetchMissingEntities } from "../utils";
+import { backfillProducts } from "./products";
 
 export async function upsertPrices(
   context: StripeSyncContext,
@@ -11,25 +11,27 @@ export async function upsertPrices(
   syncTimestamp?: string
 ): Promise<Stripe.Price[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
-    await backfillProducts(context, getUniqueIds(prices, 'product'))
+    await backfillProducts(context, getUniqueIds(prices, "product"));
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     prices,
-    'prices',
+    context.postgresClient.getTableName("prices"),
     priceSchema,
     syncTimestamp
-  )
+  );
 }
 
 export async function deletePrice(context: StripeSyncContext, id: string): Promise<boolean> {
-  return context.postgresClient.delete('prices', id)
+  return context.postgresClient.delete("prices", id);
 }
 
 export async function backfillPrices(context: StripeSyncContext, priceIds: string[]) {
-  const missingIds = await context.postgresClient.findMissingEntries('prices', priceIds)
+  const missingIds = await context.postgresClient.findMissingEntries(
+    context.postgresClient.getTableName("prices"),
+    priceIds
+  );
   await fetchMissingEntities(missingIds, (id) => context.stripe.prices.retrieve(id)).then(
     (entries) => upsertPrices(context, entries)
-  )
+  );
 }
-

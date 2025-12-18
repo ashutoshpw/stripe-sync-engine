@@ -1,8 +1,8 @@
-import Stripe from 'stripe'
-import { StripeSyncContext } from '../types'
-import { disputeSchema } from '../../schemas/dispute'
-import { getUniqueIds } from '../utils'
-import { backfillCharges } from './charges'
+import Stripe from "stripe";
+import { StripeSyncContext } from "../types";
+import { disputeSchema } from "../../schemas/dispute";
+import { getUniqueIds } from "../utils";
+import { backfillCharges } from "./charges";
 
 export async function upsertDisputes(
   context: StripeSyncContext,
@@ -11,14 +11,13 @@ export async function upsertDisputes(
   syncTimestamp?: string
 ): Promise<Stripe.Dispute[]> {
   if (backfillRelatedEntities ?? context.config.backfillRelatedEntities) {
-    await backfillCharges(context, getUniqueIds(disputes, 'charge'))
+    await backfillCharges(context, getUniqueIds(disputes, "charge"));
   }
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     disputes,
-    'disputes',
+    context.postgresClient.getTableName("disputes"),
     disputeSchema,
     syncTimestamp
-  )
+  );
 }
-
