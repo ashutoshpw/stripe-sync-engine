@@ -1,9 +1,9 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { refundSchema } from "../../schemas/refund";
+import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
-import { backfillPaymentIntents } from "./payment-intents";
 import { backfillCharges } from "./charges";
+import { backfillPaymentIntents } from "./payment-intents";
 
 export async function upsertRefunds(
   context: StripeSyncContext,

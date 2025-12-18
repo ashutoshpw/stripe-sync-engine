@@ -1,9 +1,9 @@
 import Stripe from "stripe";
 import { pg as sql } from "yesql";
-import { StripeSyncContext } from "../types";
 import { subscriptionSchema } from "../../schemas/subscription";
 import { subscriptionItemSchema } from "../../schemas/subscription_item";
-import { getUniqueIds, fetchMissingEntities, expandEntity } from "../utils";
+import { StripeSyncContext } from "../types";
+import { expandEntity, fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
 
 export async function upsertSubscriptions(

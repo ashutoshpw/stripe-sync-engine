@@ -1,13 +1,13 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
-import { checkoutSessionSchema } from "../../schemas/checkout_sessions";
 import { checkoutSessionLineItemSchema } from "../../schemas/checkout_session_line_items";
+import { checkoutSessionSchema } from "../../schemas/checkout_sessions";
+import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
-import { backfillSubscriptions } from "./subscriptions";
-import { backfillPaymentIntents } from "./payment-intents";
 import { backfillInvoices } from "./invoices";
+import { backfillPaymentIntents } from "./payment-intents";
 import { backfillPrices } from "./prices";
+import { backfillSubscriptions } from "./subscriptions";
 
 export async function upsertCheckoutSessions(
   context: StripeSyncContext,

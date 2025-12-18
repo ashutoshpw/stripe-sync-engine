@@ -1,7 +1,7 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { subscriptionScheduleSchema } from "../../schemas/subscription_schedules";
-import { getUniqueIds, fetchMissingEntities } from "../utils";
+import { StripeSyncContext } from "../types";
+import { fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
 
 export async function upsertSubscriptionSchedules(

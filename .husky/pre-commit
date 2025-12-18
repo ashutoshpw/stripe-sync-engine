@@ -1,2 +1,3 @@
-pnpm format
-pnpm lint
+pnpm biome check --write .
+git add -u
+pnpm biome lint .

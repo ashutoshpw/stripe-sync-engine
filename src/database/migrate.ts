@@ -1,10 +1,10 @@
-import { Client } from "pg";
-import { migrate } from "pg-node-migrations";
 import fs from "node:fs";
 import os from "node:os";
-import pino from "pino";
 import path from "node:path";
 import type { ConnectionOptions } from "node:tls";
+import { Client } from "pg";
+import { migrate } from "pg-node-migrations";
+import pino from "pino";
 import { BASE_TABLE_NAMES, normalizePrefix } from "./tableNames";
 
 const DEFAULT_MIGRATION_TABLE_NAME = "stripe_migrations";

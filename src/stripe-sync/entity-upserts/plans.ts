@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { planSchema } from "../../schemas/plan";
+import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillProducts } from "./products";
 

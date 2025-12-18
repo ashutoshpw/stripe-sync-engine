@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { setupIntentsSchema } from "../../schemas/setup_intents";
+import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
 

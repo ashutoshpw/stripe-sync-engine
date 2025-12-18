@@ -1,9 +1,9 @@
 import Stripe from "stripe";
 import { pg as sql } from "yesql";
-import { StripeSyncContext } from "../types";
 import { activeEntitlementSchema } from "../../schemas/active_entitlement";
 import { featureSchema } from "../../schemas/feature";
-import { getUniqueIds, fetchMissingEntities } from "../utils";
+import { StripeSyncContext } from "../types";
+import { fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
 
 export async function upsertFeatures(

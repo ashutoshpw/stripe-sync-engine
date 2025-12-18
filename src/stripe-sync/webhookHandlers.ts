@@ -1,7 +1,12 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "./types";
 import type { RevalidateEntity } from "../types";
 import {
+  deletePlan,
+  deletePrice,
+  deleteProduct,
+  deleteRemovedActiveEntitlements,
+  deleteTaxId,
+  upsertActiveEntitlements,
   upsertCharges,
   upsertCheckoutSessions,
   upsertCreditNotes,
@@ -17,16 +22,11 @@ import {
   upsertRefunds,
   upsertReviews,
   upsertSetupIntents,
-  upsertSubscriptions,
   upsertSubscriptionSchedules,
+  upsertSubscriptions,
   upsertTaxIds,
-  upsertActiveEntitlements,
-  deleteRemovedActiveEntitlements,
-  deleteTaxId,
-  deleteProduct,
-  deletePrice,
-  deletePlan,
 } from "./entity-upserts";
+import { StripeSyncContext } from "./types";
 
 export async function processWebhook(
   context: StripeSyncContext,

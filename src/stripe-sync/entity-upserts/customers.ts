@@ -1,6 +1,6 @@
 import Stripe from "stripe";
+import { customerDeletedSchema, customerSchema } from "../../schemas/customer";
 import { StripeSyncContext } from "../types";
-import { customerSchema, customerDeletedSchema } from "../../schemas/customer";
 import { fetchMissingEntities } from "../utils";
 
 export async function upsertCustomers(

@@ -1,37 +1,14 @@
+import type { PoolConfig } from "pg";
 import Stripe from "stripe";
 import { PostgresClient } from "../database/postgres";
 import {
   StripeSyncConfig,
-  SyncBackfillParams,
-  SyncBackfill,
   Sync,
+  SyncBackfill,
+  SyncBackfillParams,
   SyncEntitlementsParams,
   SyncFeaturesParams,
 } from "../types";
-import { StripeSyncContext } from "./types";
-import { processWebhook, processEvent } from "./webhookHandlers";
-import {
-  syncBackfill,
-  syncProducts,
-  syncPrices,
-  syncPlans,
-  syncCustomers,
-  syncSubscriptions,
-  syncSubscriptionSchedules,
-  syncInvoices,
-  syncCharges,
-  syncSetupIntents,
-  syncPaymentIntents,
-  syncTaxIds,
-  syncPaymentMethods,
-  syncDisputes,
-  syncEarlyFraudWarnings,
-  syncRefunds,
-  syncCreditNotes,
-  syncFeatures,
-  syncEntitlements,
-  syncCheckoutSessions,
-} from "./syncOrchestrator";
 import {
   upsertCharges,
   upsertCheckoutSessions,
@@ -52,7 +29,30 @@ import {
   upsertSubscriptions,
   upsertTaxIds,
 } from "./entity-upserts";
-import type { PoolConfig } from "pg";
+import {
+  syncBackfill,
+  syncCharges,
+  syncCheckoutSessions,
+  syncCreditNotes,
+  syncCustomers,
+  syncDisputes,
+  syncEarlyFraudWarnings,
+  syncEntitlements,
+  syncFeatures,
+  syncInvoices,
+  syncPaymentIntents,
+  syncPaymentMethods,
+  syncPlans,
+  syncPrices,
+  syncProducts,
+  syncRefunds,
+  syncSetupIntents,
+  syncSubscriptionSchedules,
+  syncSubscriptions,
+  syncTaxIds,
+} from "./syncOrchestrator";
+import { StripeSyncContext } from "./types";
+import { processEvent, processWebhook } from "./webhookHandlers";
 
 const DEFAULT_SCHEMA = "stripe";
 

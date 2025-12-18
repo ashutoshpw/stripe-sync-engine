@@ -1,7 +1,7 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { priceSchema } from "../../schemas/price";
-import { getUniqueIds, fetchMissingEntities } from "../utils";
+import { StripeSyncContext } from "../types";
+import { fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillProducts } from "./products";
 
 export async function upsertPrices(

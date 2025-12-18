@@ -1,6 +1,5 @@
 import Stripe from "stripe";
 import { pg as sql } from "yesql";
-import { StripeSyncContext } from "./types";
 import {
   Sync,
   SyncBackfill,
@@ -8,14 +7,15 @@ import {
   SyncEntitlementsParams,
   SyncFeaturesParams,
 } from "../types";
-import { chunkArray } from "./utils";
 import {
+  upsertActiveEntitlements,
   upsertCharges,
   upsertCheckoutSessions,
   upsertCreditNotes,
   upsertCustomers,
   upsertDisputes,
   upsertEarlyFraudWarning,
+  upsertFeatures,
   upsertInvoices,
   upsertPaymentIntents,
   upsertPaymentMethods,
@@ -24,12 +24,12 @@ import {
   upsertProducts,
   upsertRefunds,
   upsertSetupIntents,
-  upsertSubscriptions,
   upsertSubscriptionSchedules,
+  upsertSubscriptions,
   upsertTaxIds,
-  upsertFeatures,
-  upsertActiveEntitlements,
 } from "./entity-upserts";
+import { StripeSyncContext } from "./types";
+import { chunkArray } from "./utils";
 
 export async function syncBackfill(
   context: StripeSyncContext,

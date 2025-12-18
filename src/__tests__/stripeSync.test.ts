@@ -5,7 +5,6 @@ import Stripe from "stripe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StripeSync } from "../stripe-sync";
 import type { StripeSyncConfig } from "../types";
-import { createStripeMock, createAsyncIterable } from "./utils/mockStripe";
 import {
   createActiveEntitlementSummary,
   createCharge,
@@ -30,6 +29,7 @@ import {
   createSubscriptionSchedule,
   createTaxId,
 } from "./utils/fixtures";
+import { createAsyncIterable, createStripeMock } from "./utils/mockStripe";
 
 const pgMem = vi.hoisted(() => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires

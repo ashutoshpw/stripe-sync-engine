@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { disputeSchema } from "../../schemas/dispute";
+import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCharges } from "./charges";
 

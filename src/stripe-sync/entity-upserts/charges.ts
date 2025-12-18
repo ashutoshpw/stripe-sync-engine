@@ -1,7 +1,7 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { chargeSchema } from "../../schemas/charge";
-import { getUniqueIds, fetchMissingEntities, expandEntity } from "../utils";
+import { StripeSyncContext } from "../types";
+import { expandEntity, fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
 import { backfillInvoices } from "./invoices";
 

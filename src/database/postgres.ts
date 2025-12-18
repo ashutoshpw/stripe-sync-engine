@@ -1,7 +1,7 @@
 import pg, { PoolConfig, QueryResult } from "pg";
 import { pg as sql } from "yesql";
 import { EntitySchema } from "../schemas/types";
-import { TableName, normalizePrefix, getTableName as getTableNameUtil } from "./tableNames";
+import { getTableName as getTableNameUtil, normalizePrefix, TableName } from "./tableNames";
 
 type PostgresConfig = {
   schema: string;
@@ -49,7 +49,7 @@ export class PostgresClient {
     return this.pool.query(text, params);
   }
 
-  async upsertMany<T extends Record<string, unknown>>(
+  async upsertMany<T extends Record<string, any>>(
     entries: T[],
     table: string,
     tableSchema: EntitySchema
@@ -82,7 +82,7 @@ export class PostgresClient {
     return results.flatMap((it) => it.rows);
   }
 
-  async upsertManyWithTimestampProtection<T extends Record<string, unknown>>(
+  async upsertManyWithTimestampProtection<T extends Record<string, any>>(
     entries: T[],
     table: string,
     tableSchema: EntitySchema,

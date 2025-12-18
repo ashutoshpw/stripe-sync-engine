@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { StripeSyncContext } from "../types";
 import { productSchema } from "../../schemas/product";
+import { StripeSyncContext } from "../types";
 import { fetchMissingEntities } from "../utils";
 
 export async function upsertProducts(
