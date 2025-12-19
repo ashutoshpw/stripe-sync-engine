@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { paymentIntentSchema } from "../../schemas/payment_intent";
+import { paymentIntents as paymentIntentsTable } from "../../drizzle-schema/payment_intents";
 import { StripeSyncContext } from "../types";
 import { fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -20,8 +20,8 @@ export async function upsertPaymentIntents(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     paymentIntents,
-    context.postgresClient.getTableName("payment_intents"),
-    paymentIntentSchema,
+    "payment_intents",
+    paymentIntentsTable,
     syncTimestamp
   );
 }
@@ -31,7 +31,7 @@ export async function backfillPaymentIntents(
   paymentIntentIds: string[]
 ) {
   const missingIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("payment_intents"),
+    "payment_intents",
     paymentIntentIds
   );
 

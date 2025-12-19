@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { earlyFraudWarningSchema } from "../../schemas/early_fraud_warning";
+import { earlyFraudWarnings as earlyFraudWarningsTable } from "../../drizzle-schema/early_fraud_warning";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCharges } from "./charges";
@@ -20,8 +20,8 @@ export async function upsertEarlyFraudWarning(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     earlyFraudWarnings,
-    context.postgresClient.getTableName("early_fraud_warnings"),
-    earlyFraudWarningSchema,
+    "early_fraud_warnings",
+    earlyFraudWarningsTable,
     syncTimestamp
   );
 }

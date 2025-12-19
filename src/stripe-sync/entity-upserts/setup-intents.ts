@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { setupIntentsSchema } from "../../schemas/setup_intents";
+import { setupIntents as setupIntentsTable } from "../../drizzle-schema/setup_intents";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -16,8 +16,8 @@ export async function upsertSetupIntents(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     setupIntents,
-    context.postgresClient.getTableName("setup_intents"),
-    setupIntentsSchema,
+    "setup_intents",
+    setupIntentsTable,
     syncTimestamp
   );
 }

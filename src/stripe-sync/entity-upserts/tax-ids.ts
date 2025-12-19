@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { taxIdSchema } from "../../schemas/tax_id";
+import { taxIds as taxIdsTable } from "../../drizzle-schema/tax_ids";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -16,8 +16,8 @@ export async function upsertTaxIds(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     taxIds,
-    context.postgresClient.getTableName("tax_ids"),
-    taxIdSchema,
+    "tax_ids",
+    taxIdsTable,
     syncTimestamp
   );
 }

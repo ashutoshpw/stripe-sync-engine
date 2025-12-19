@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { refundSchema } from "../../schemas/refund";
+import { refunds as refundsTable } from "../../drizzle-schema/refund";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCharges } from "./charges";
@@ -20,8 +20,8 @@ export async function upsertRefunds(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     refunds,
-    context.postgresClient.getTableName("refunds"),
-    refundSchema,
+    "refunds",
+    refundsTable,
     syncTimestamp
   );
 }

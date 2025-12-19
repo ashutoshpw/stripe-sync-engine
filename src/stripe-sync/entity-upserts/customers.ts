@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { customerDeletedSchema, customerSchema } from "../../schemas/customer";
+import { customers as customersTable } from "../../drizzle-schema/customers";
 import { StripeSyncContext } from "../types";
 import { fetchMissingEntities } from "../utils";
 
@@ -13,14 +13,14 @@ export async function upsertCustomers(
 
   await context.postgresClient.upsertManyWithTimestampProtection(
     nonDeletedCustomers,
-    context.postgresClient.getTableName("customers"),
-    customerSchema,
+    "customers",
+    customersTable,
     syncTimestamp
   );
   await context.postgresClient.upsertManyWithTimestampProtection(
     deletedCustomers,
-    context.postgresClient.getTableName("customers"),
-    customerDeletedSchema,
+    "customers",
+    customersTable,
     syncTimestamp
   );
 
@@ -29,7 +29,7 @@ export async function upsertCustomers(
 
 export async function backfillCustomers(context: StripeSyncContext, customerIds: string[]) {
   const missingIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("customers"),
+    "customers",
     customerIds
   );
 

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
-import { checkoutSessionLineItemSchema } from "../../schemas/checkout_session_line_items";
-import { checkoutSessionSchema } from "../../schemas/checkout_sessions";
+import { checkoutSessions as checkoutSessionsTable } from "../../drizzle-schema/checkout_sessions";
+import { checkoutSessionLineItems as checkoutSessionLineItemsTable } from "../../drizzle-schema/checkout_session_line_items";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -26,8 +26,8 @@ export async function upsertCheckoutSessions(
 
   const rows = await context.postgresClient.upsertManyWithTimestampProtection(
     checkoutSessions,
-    context.postgresClient.getTableName("checkout_sessions"),
-    checkoutSessionSchema,
+    "checkout_sessions",
+    checkoutSessionsTable,
     syncTimestamp
   );
 
@@ -91,8 +91,8 @@ export async function upsertCheckoutSessionLineItems(
 
   await context.postgresClient.upsertManyWithTimestampProtection(
     modifiedLineItems,
-    context.postgresClient.getTableName("checkout_session_line_items"),
-    checkoutSessionLineItemSchema,
+    "checkout_session_line_items",
+    checkoutSessionLineItemsTable,
     syncTimestamp
   );
 }

@@ -1,6 +1,9 @@
 import pg, { PoolConfig, QueryResult } from "pg";
-import { pg as sql } from "yesql";
-import { EntitySchema } from "../schemas/types";
+import { sql } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
+import type { PgTable } from "drizzle-orm/pg-core";
+import { createDrizzleClient } from "./drizzle-client";
+import { getDrizzleTable } from "./drizzle-table-map";
 import { getTableName as getTableNameUtil, normalizePrefix, TableName } from "./tableNames";
 
 type PostgresConfig = {
@@ -12,10 +15,12 @@ type PostgresConfig = {
 export class PostgresClient {
   pool: pg.Pool;
   private tablePrefix: string;
+  drizzle: ReturnType<typeof createDrizzleClient>;
 
   constructor(private config: PostgresConfig) {
     this.pool = new pg.Pool(config.poolConfig);
     this.tablePrefix = normalizePrefix(config.tablePrefix);
+    this.drizzle = createDrizzleClient(this.pool);
   }
 
   /**
@@ -36,13 +41,14 @@ export class PostgresClient {
 
   async delete(table: TableName, id: string): Promise<boolean> {
     const tableName = this.getTableName(table);
-    const prepared = sql(`
-    delete from "${this.config.schema}"."${tableName}" 
-    where id = :id
-    returning id;
-    `)({ id });
-    const { rows } = await this.query(prepared.text, prepared.values);
-    return rows.length > 0;
+    const schemaName = this.config.schema;
+    const query = sql`
+      DELETE FROM ${sql.identifier(schemaName)}.${sql.identifier(tableName)}
+      WHERE id = ${id}
+      RETURNING id
+    `;
+    const result = await this.drizzle.execute(query);
+    return (result.rows?.length ?? 0) > 0;
   }
 
   async query(text: string, params?: string[]): Promise<QueryResult> {
@@ -52,178 +58,193 @@ export class PostgresClient {
   async upsertMany<T extends Record<string, any>>(
     entries: T[],
     table: string,
-    tableSchema: EntitySchema
+    drizzleTable: PgTable
   ): Promise<T[]> {
     if (!entries.length) return [];
 
-    // Max 5 in parallel to avoid exhausting connection pool
+    const tableName = this.getTableName(table as TableName);
+    const schemaName = this.config.schema;
+    const schemaColumns = this.getTableColumns(drizzleTable);
     const chunkSize = 5;
-    const results: pg.QueryResult<T>[] = [];
+    const results: T[] = [];
 
     for (let i = 0; i < entries.length; i += chunkSize) {
       const chunk = entries.slice(i, i + chunkSize);
 
-      const queries: Promise<pg.QueryResult<T>>[] = [];
+      const queries: Promise<T[]>[] = [];
       chunk.forEach((entry) => {
-        // Inject the values
         const cleansed = this.cleanseArrayField(entry);
-        const upsertSql = this.constructUpsertSql(this.config.schema, table, tableSchema);
+        const filtered: Record<string, any> = {};
+        for (const [key, value] of Object.entries(cleansed)) {
+          if (schemaColumns.has(key)) {
+            filtered[key] = value;
+          }
+        }
+        const columns = Object.keys(filtered);
+        const columnNames = columns.map((col) => `"${col}"`).join(",");
+        const placeholders = columns.map((_, idx) => `$${idx + 1}`).join(",");
+        const updateSet = columns.map((col) => `"${col}" = EXCLUDED."${col}"`).join(",");
+        const values = columns.map((col) => filtered[col]);
 
-        const prepared = sql(upsertSql, {
-          useNullForMissing: true,
-        })(cleansed);
+        const queryText = `
+          INSERT INTO "${schemaName}"."${tableName}" (
+            ${columnNames}
+          )
+          VALUES (
+            ${placeholders}
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            ${updateSet}
+          RETURNING *
+        `;
 
-        queries.push(this.pool.query(prepared.text, prepared.values));
+        queries.push(
+          this.pool.query(queryText, values).then((result) => result.rows as T[])
+        );
       });
 
-      results.push(...(await Promise.all(queries)));
+      results.push(...(await Promise.all(queries)).flat());
     }
 
-    return results.flatMap((it) => it.rows);
+    return results;
+  }
+
+  private getTableColumns(drizzleTable: PgTable): Set<string> {
+    const columns = new Set<string>();
+    const tableObj = drizzleTable as Record<string, any>;
+    
+    if (tableObj._ && tableObj._.columns) {
+      for (const col of Object.values(tableObj._.columns)) {
+        if (col && typeof col === "object" && "name" in col && typeof col.name === "string") {
+          columns.add(col.name);
+        }
+      }
+    } else {
+      for (const key in tableObj) {
+        if (key.startsWith("_") || key === "getSQL") continue;
+        
+        const column = tableObj[key];
+        if (!column || typeof column !== "object") continue;
+        
+        let columnName: string | undefined;
+        
+        if ("name" in column && typeof column.name === "string") {
+          columnName = column.name;
+        } else if ("column" in column && column.column && typeof column.column === "object" && "name" in column.column) {
+          columnName = column.column.name;
+        } else if ("dataType" in column) {
+          const inner = (column as any).column || column;
+          if (inner && "name" in inner && typeof inner.name === "string") {
+            columnName = inner.name;
+          }
+        }
+        
+        if (columnName) {
+          columns.add(columnName);
+        }
+      }
+    }
+    
+    columns.add("last_synced_at");
+    return columns;
+  }
+
+  private filterToSchemaColumns<T extends Record<string, any>>(
+    entry: T,
+    drizzleTable: PgTable
+  ): Record<string, any> {
+    const schemaColumns = this.getTableColumns(drizzleTable);
+    const filtered: Record<string, any> = {};
+    for (const [key, value] of Object.entries(entry)) {
+      if (schemaColumns.has(key)) {
+        filtered[key] = value;
+      }
+    }
+    return filtered;
   }
 
   async upsertManyWithTimestampProtection<T extends Record<string, any>>(
     entries: T[],
     table: string,
-    tableSchema: EntitySchema,
+    drizzleTable: PgTable,
     syncTimestamp?: string
   ): Promise<T[]> {
     const timestamp = syncTimestamp || new Date().toISOString();
 
     if (!entries.length) return [];
 
-    // Max 5 in parallel to avoid exhausting connection pool
+    const tableName = this.getTableName(table as TableName);
+    const schemaName = this.config.schema;
+    const schemaColumns = this.getTableColumns(drizzleTable);
+
     const chunkSize = 5;
-    const results: pg.QueryResult<T>[] = [];
+    const results: T[] = [];
 
     for (let i = 0; i < entries.length; i += chunkSize) {
       const chunk = entries.slice(i, i + chunkSize);
 
-      const queries: Promise<pg.QueryResult<T>>[] = [];
+      const queries: Promise<T[]>[] = [];
       chunk.forEach((entry) => {
-        // Inject the values
         const cleansed = this.cleanseArrayField(entry);
-        // Add last_synced_at to the cleansed data for SQL parameter binding
-        cleansed.last_synced_at = timestamp;
+        const filtered: Record<string, any> = {};
+        for (const [key, value] of Object.entries(cleansed)) {
+          if (schemaColumns.has(key)) {
+            filtered[key] = value;
+          }
+        }
+        filtered.last_synced_at = timestamp;
 
-        const upsertSql = this.constructUpsertWithTimestampProtectionSql(
-          this.config.schema,
-          table,
-          tableSchema
+        const columns = Object.keys(filtered);
+        const columnNames = columns.map((col) => `"${col}"`).join(",");
+        const placeholders = columns.map((_, idx) => `$${idx + 1}`).join(",");
+        const updateSet = columns
+          .filter((col) => col !== "last_synced_at")
+          .map((col) => `"${col}" = EXCLUDED."${col}"`)
+          .join(",");
+
+        const values = columns.map((col) => filtered[col]);
+        const queryText = `
+          INSERT INTO "${schemaName}"."${tableName}" (
+            ${columnNames}
+          )
+          VALUES (
+            ${placeholders}
+          )
+          ON CONFLICT (id) DO UPDATE SET
+            ${updateSet},
+            "last_synced_at" = $${columns.length}::timestamptz
+          WHERE "${schemaName}"."${tableName}"."last_synced_at" IS NULL 
+             OR "${schemaName}"."${tableName}"."last_synced_at" < $${columns.length}::timestamptz
+          RETURNING *
+        `;
+
+        queries.push(
+          this.pool.query(queryText, values).then((result) => result.rows as T[])
         );
-
-        const prepared = sql(upsertSql, {
-          useNullForMissing: true,
-        })(cleansed);
-
-        queries.push(this.pool.query(prepared.text, prepared.values));
       });
 
-      results.push(...(await Promise.all(queries)));
+      results.push(...(await Promise.all(queries)).flat());
     }
 
-    return results.flatMap((it) => it.rows);
+    return results;
   }
 
   async findMissingEntries(table: string, ids: string[]): Promise<string[]> {
     if (!ids.length) return [];
 
-    const prepared = sql(`
-    select id from "${this.config.schema}"."${table}"
-    where id=any(:ids::text[]);
-    `)({ ids });
-
-    const { rows } = await this.query(prepared.text, prepared.values);
-    const existingIds = rows.map((it) => it.id);
-
+    const tableName = this.getTableName(table as TableName);
+    const schemaName = this.config.schema;
+    const query = sql`
+      SELECT id FROM ${sql.identifier(schemaName)}.${sql.identifier(tableName)}
+      WHERE id = ANY(${ids}::text[])
+    `;
+    const result = await this.drizzle.execute(query);
+    const existingIds = (result.rows ?? []).map((it: any) => it.id);
     const missingIds = ids.filter((it) => !existingIds.includes(it));
 
     return missingIds;
   }
 
-  /**
-   * Returns an (yesql formatted) upsert function based on the key/vals of an object.
-   * eg,
-   *  insert into customers ("id", "name")
-   *  values (:id, :name)
-   *  on conflict (id)
-   *  do update set (
-   *   "id" = :id,
-   *   "name" = :name
-   *  )
-   */
-  private constructUpsertSql(
-    schema: string,
-    table: string,
-    tableSchema: EntitySchema,
-    options?: {
-      conflict?: string;
-    }
-  ): string {
-    const { conflict = "id" } = options || {};
-    const properties = tableSchema.properties;
-
-    return `
-    insert into "${schema}"."${table}" (
-      ${properties.map((x) => `"${x}"`).join(",")}
-    )
-    values (
-      ${properties.map((x) => `:${x}`).join(",")}
-    )
-    on conflict (
-      ${conflict}
-    )
-    do update set 
-      ${properties.map((x) => `"${x}" = :${x}`).join(",")}
-    ;`;
-  }
-
-  /**
-   * Returns an (yesql formatted) upsert function with timestamp protection.
-   *
-   * The WHERE clause in ON CONFLICT DO UPDATE only applies to the conflicting row
-   * (the row being updated), not to all rows in the table. PostgreSQL ensures that
-   * the condition is evaluated only for the specific row that conflicts with the INSERT.
-   *
-   *
-   * eg:
-   *   INSERT INTO "stripe"."charges" (
-   *     "id", "amount", "created", "last_synced_at"
-   *   )
-   *   VALUES (
-   *     :id, :amount, :created, :last_synced_at
-   *   )
-   *   ON CONFLICT (id) DO UPDATE SET
-   *     "amount" = EXCLUDED."amount",
-   *     "created" = EXCLUDED."created",
-   *     last_synced_at = :last_synced_at
-   *   WHERE "charges"."last_synced_at" IS NULL
-   *      OR "charges"."last_synced_at" < :last_synced_at;
-   */
-  private constructUpsertWithTimestampProtectionSql = (
-    schema: string,
-    table: string,
-    tableSchema: EntitySchema
-  ): string => {
-    const conflict = "id";
-    const properties = tableSchema.properties;
-
-    return `
-      INSERT INTO "${schema}"."${table}" (
-        ${properties.map((x) => `"${x}"`).join(",")}, "last_synced_at"
-      )
-      VALUES (
-        ${properties.map((x) => `:${x}`).join(",")}, :last_synced_at
-      )
-      ON CONFLICT (${conflict}) DO UPDATE SET
-        ${properties
-          .filter((x) => x !== "last_synced_at")
-          .map((x) => `"${x}" = EXCLUDED."${x}"`)
-          .join(",")},
-        last_synced_at = :last_synced_at
-      WHERE "${table}"."last_synced_at" IS NULL 
-         OR "${table}"."last_synced_at" < :last_synced_at;`;
-  };
 
   /**
    * For array object field like invoice.custom_fields

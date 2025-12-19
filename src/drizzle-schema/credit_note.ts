@@ -1,0 +1,42 @@
+import {
+  text,
+  boolean,
+  integer,
+  jsonb,
+  timestamp,
+} from "drizzle-orm/pg-core"
+import { stripeSchema } from "./enums"
+
+export const creditNotes = stripeSchema.table("credit_notes", {
+  id: text("id").primaryKey(),
+  object: text("object"),
+  amount: integer("amount"),
+  amountShipping: integer("amount_shipping"),
+  created: integer("created"),
+  currency: text("currency"),
+  customer: text("customer"),
+  customerBalanceTransaction: text("customer_balance_transaction"),
+  discountAmount: integer("discount_amount"),
+  discountAmounts: jsonb("discount_amounts"),
+  invoice: text("invoice"),
+  lines: jsonb("lines"),
+  livemode: boolean("livemode"),
+  memo: text("memo"),
+  metadata: jsonb("metadata"),
+  number: text("number"),
+  outOfBandAmount: integer("out_of_band_amount"),
+  pdf: text("pdf"),
+  reason: text("reason"),
+  refund: text("refund"),
+  shippingCost: jsonb("shipping_cost"),
+  status: text("status"),
+  subtotal: integer("subtotal"),
+  subtotalExcludingTax: integer("subtotal_excluding_tax"),
+  taxAmounts: jsonb("tax_amounts"),
+  total: integer("total"),
+  totalExcludingTax: integer("total_excluding_tax"),
+  type: text("type"),
+  voidedAt: text("voided_at"),
+  lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
+})
+

@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { priceSchema } from "../../schemas/price";
+import { prices as pricesTable } from "../../drizzle-schema/prices";
 import { StripeSyncContext } from "../types";
 import { fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillProducts } from "./products";
@@ -16,8 +16,8 @@ export async function upsertPrices(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     prices,
-    context.postgresClient.getTableName("prices"),
-    priceSchema,
+    "prices",
+    pricesTable,
     syncTimestamp
   );
 }
@@ -28,7 +28,7 @@ export async function deletePrice(context: StripeSyncContext, id: string): Promi
 
 export async function backfillPrices(context: StripeSyncContext, priceIds: string[]) {
   const missingIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("prices"),
+    "prices",
     priceIds
   );
   await fetchMissingEntities(missingIds, (id) => context.stripe.prices.retrieve(id)).then(

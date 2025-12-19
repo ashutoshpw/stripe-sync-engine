@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { reviewSchema } from "../../schemas/review";
+import { reviews as reviewsTable } from "../../drizzle-schema/review";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCharges } from "./charges";
@@ -20,8 +20,8 @@ export async function upsertReviews(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     reviews,
-    context.postgresClient.getTableName("reviews"),
-    reviewSchema,
+    "reviews",
+    reviewsTable,
     syncTimestamp
   );
 }

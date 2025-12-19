@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { paymentMethodsSchema } from "../../schemas/payment_methods";
+import { paymentMethods as paymentMethodsTable } from "../../drizzle-schema/payment_methods";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -16,8 +16,8 @@ export async function upsertPaymentMethods(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     paymentMethods,
-    context.postgresClient.getTableName("payment_methods"),
-    paymentMethodsSchema,
+    "payment_methods",
+    paymentMethodsTable,
     syncTimestamp
   );
 }

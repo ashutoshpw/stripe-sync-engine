@@ -1,0 +1,13 @@
+
+/root/.nvm/versions/node/v22.11.0/lib/node_modules/corepack/dist/lib/corepack.cjs:22373
+              throw new UsageError(`This project is configured to use ${result.spec.name} because ${result.target} has a "packageManager" field`);
+                    ^
+
+UsageError: This project is configured to use pnpm because /root/code/hz-arb/packages-cf/stripe-sync-engine/package.json has a "packageManager" field
+    at Engine.findProjectSpec (/root/.nvm/versions/node/v22.11.0/lib/node_modules/[4mcorepack[24m/dist/lib/corepack.cjs:22373:21)
+    at async Engine.executePackageManagerRequest (/root/.nvm/versions/node/v22.11.0/lib/node_modules/[4mcorepack[24m/dist/lib/corepack.cjs:22404:24)
+    at async Object.runMain (/root/.nvm/versions/node/v22.11.0/lib/node_modules/[4mcorepack[24m/dist/lib/corepack.cjs:23096:5) {
+  clipanion: { type: [32m'usage'[39m }
+}
+
+Node.js v22.11.0

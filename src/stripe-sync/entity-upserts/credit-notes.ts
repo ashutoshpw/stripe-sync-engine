@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { creditNoteSchema } from "../../schemas/credit_note";
+import { creditNotes as creditNotesTable } from "../../drizzle-schema/credit_note";
 import { StripeSyncContext } from "../types";
 import { expandEntity, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -24,8 +24,8 @@ export async function upsertCreditNotes(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     creditNotes,
-    context.postgresClient.getTableName("credit_notes"),
-    creditNoteSchema,
+    "credit_notes",
+    creditNotesTable,
     syncTimestamp
   );
 }

@@ -1,7 +1,7 @@
 import Stripe from "stripe";
-import { pg as sql } from "yesql";
-import { activeEntitlementSchema } from "../../schemas/active_entitlement";
-import { featureSchema } from "../../schemas/feature";
+import { sql } from "drizzle-orm";
+import { features as featuresTable } from "../../drizzle-schema/feature";
+import { activeEntitlements as activeEntitlementsTable } from "../../drizzle-schema/active_entitlement";
 import { StripeSyncContext } from "../types";
 import { fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -13,15 +13,15 @@ export async function upsertFeatures(
 ) {
   return context.postgresClient.upsertManyWithTimestampProtection(
     features,
-    context.postgresClient.getTableName("features"),
-    featureSchema,
+    "features",
+    featuresTable,
     syncTimestamp
   );
 }
 
 export async function backfillFeatures(context: StripeSyncContext, featureIds: string[]) {
   const missingFeatureIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("features"),
+    "features",
     featureIds
   );
   await fetchMissingEntities(missingFeatureIds, (id) =>
@@ -59,8 +59,8 @@ export async function upsertActiveEntitlements(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     entitlements,
-    context.postgresClient.getTableName("active_entitlements"),
-    activeEntitlementSchema,
+    "active_entitlements",
+    activeEntitlementsTable,
     syncTimestamp
   );
 }
@@ -72,10 +72,13 @@ export async function deleteRemovedActiveEntitlements(
 ): Promise<{ rowCount: number }> {
   const schema = context.postgresClient.getSchema();
   const tableName = context.postgresClient.getTableName("active_entitlements");
-  const prepared = sql(`
-      delete from "${schema}"."${tableName}"
-      where customer = :customerId and id <> ALL(:currentActiveEntitlementIds::text[]);
-      `)({ customerId, currentActiveEntitlementIds });
-  const { rowCount } = await context.postgresClient.query(prepared.text, prepared.values);
-  return { rowCount: rowCount || 0 };
+  const queryText = `
+    DELETE FROM "${schema}"."${tableName}"
+    WHERE customer = $1 AND id <> ALL($2::text[])
+  `;
+  const result = await context.postgresClient.pool.query(queryText, [
+    customerId,
+    currentActiveEntitlementIds,
+  ]);
+  return { rowCount: result.rowCount || 0 };
 }

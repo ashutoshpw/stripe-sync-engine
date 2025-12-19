@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { productSchema } from "../../schemas/product";
+import { products as productsTable } from "../../drizzle-schema/products";
 import { StripeSyncContext } from "../types";
 import { fetchMissingEntities } from "../utils";
 
@@ -10,8 +10,8 @@ export async function upsertProducts(
 ): Promise<Stripe.Product[]> {
   return context.postgresClient.upsertManyWithTimestampProtection(
     products,
-    context.postgresClient.getTableName("products"),
-    productSchema,
+    "products",
+    productsTable,
     syncTimestamp
   );
 }
@@ -22,7 +22,7 @@ export async function deleteProduct(context: StripeSyncContext, id: string): Pro
 
 export async function backfillProducts(context: StripeSyncContext, productIds: string[]) {
   const missingProductIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("products"),
+    "products",
     productIds
   );
 

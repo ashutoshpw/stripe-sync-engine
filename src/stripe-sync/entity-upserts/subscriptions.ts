@@ -1,7 +1,7 @@
 import Stripe from "stripe";
-import { pg as sql } from "yesql";
-import { subscriptionSchema } from "../../schemas/subscription";
-import { subscriptionItemSchema } from "../../schemas/subscription_item";
+import { sql } from "drizzle-orm";
+import { subscriptions as subscriptionsTable } from "../../drizzle-schema/subscriptions";
+import { subscriptionItems as subscriptionItemsTable } from "../../drizzle-schema/subscription_items";
 import { StripeSyncContext } from "../types";
 import { expandEntity, fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -24,8 +24,8 @@ export async function upsertSubscriptions(
 
   const rows = await context.postgresClient.upsertManyWithTimestampProtection(
     subscriptions,
-    context.postgresClient.getTableName("subscriptions"),
-    subscriptionSchema,
+    "subscriptions",
+    subscriptionsTable,
     syncTimestamp
   );
 
@@ -64,8 +64,8 @@ export async function upsertSubscriptionItems(
 
   await context.postgresClient.upsertManyWithTimestampProtection(
     modifiedSubscriptionItems,
-    context.postgresClient.getTableName("subscription_items"),
-    subscriptionItemSchema,
+    "subscription_items",
+    subscriptionItemsTable,
     syncTimestamp
   );
 }
@@ -77,23 +77,24 @@ export async function markDeletedSubscriptionItems(
 ): Promise<{ rowCount: number }> {
   const schema = context.postgresClient.getSchema();
   const tableName = context.postgresClient.getTableName("subscription_items");
-  let prepared = sql(`
-    select id from "${schema}"."${tableName}"
-    where subscription = :subscriptionId and deleted = false;
-    `)({ subscriptionId });
-  const { rows } = await context.postgresClient.query(prepared.text, prepared.values);
+  const query = sql`
+    SELECT id FROM ${sql.identifier(schema)}.${sql.identifier(tableName)}
+    WHERE subscription = ${subscriptionId} AND deleted = false
+  `;
+  const result = await context.postgresClient.drizzle.execute(query);
+  const rows = result.rows ?? [];
   const deletedIds = rows.filter(
     ({ id }: { id: string }) => currentSubItemIds.includes(id) === false
   );
 
   if (deletedIds.length > 0) {
     const ids = deletedIds.map(({ id }: { id: string }) => id);
-    prepared = sql(`
-      update "${schema}"."${tableName}"
-      set deleted = true where id=any(:ids::text[]);
-      `)({ ids });
-    const { rowCount } = await await context.postgresClient.query(prepared.text, prepared.values);
-    return { rowCount: rowCount || 0 };
+    const updateQuery = sql`
+      UPDATE ${sql.identifier(schema)}.${sql.identifier(tableName)}
+      SET deleted = true WHERE id = ANY(${ids}::text[])
+    `;
+    const updateResult = await context.postgresClient.drizzle.execute(updateQuery);
+    return { rowCount: updateResult.rowCount || 0 };
   } else {
     return { rowCount: 0 };
   }
@@ -101,7 +102,7 @@ export async function markDeletedSubscriptionItems(
 
 export async function backfillSubscriptions(context: StripeSyncContext, subscriptionIds: string[]) {
   const missingSubscriptionIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("subscriptions"),
+    "subscriptions",
     subscriptionIds
   );
 

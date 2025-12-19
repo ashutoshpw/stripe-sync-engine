@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { disputeSchema } from "../../schemas/dispute";
+import { disputes as disputesTable } from "../../drizzle-schema/disputes";
 import { StripeSyncContext } from "../types";
 import { getUniqueIds } from "../utils";
 import { backfillCharges } from "./charges";
@@ -16,8 +16,8 @@ export async function upsertDisputes(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     disputes,
-    context.postgresClient.getTableName("disputes"),
-    disputeSchema,
+    "disputes",
+    disputesTable,
     syncTimestamp
   );
 }

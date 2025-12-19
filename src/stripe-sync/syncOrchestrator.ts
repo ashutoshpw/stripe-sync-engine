@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { pg as sql } from "yesql";
+import { sql } from "drizzle-orm";
 import {
   Sync,
   SyncBackfill,
@@ -334,11 +334,13 @@ export async function syncPaymentMethods(
 
   const schema = context.postgresClient.getSchema();
   const tableName = context.postgresClient.getTableName("customers");
-  const prepared = sql(`select id from "${schema}"."${tableName}" WHERE deleted <> true;`)([]);
+  const query = sql`
+    SELECT id FROM ${sql.identifier(schema)}.${sql.identifier(tableName)}
+    WHERE deleted <> true
+  `;
 
-  const customerIds = await context.postgresClient
-    .query(prepared.text, prepared.values)
-    .then(({ rows }) => rows.map((it) => it.id));
+  const result = await context.postgresClient.drizzle.execute(query);
+  const customerIds = (result.rows ?? []).map((it: any) => it.id);
 
   context.config.logger?.info(`Getting payment methods for ${customerIds.length} customers`);
 

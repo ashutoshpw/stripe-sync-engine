@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { invoiceSchema } from "../../schemas/invoice";
+import { invoices as invoicesTable } from "../../drizzle-schema/invoices";
 import { StripeSyncContext } from "../types";
 import { expandEntity, fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -24,15 +24,15 @@ export async function upsertInvoices(
 
   return context.postgresClient.upsertManyWithTimestampProtection(
     invoices,
-    context.postgresClient.getTableName("invoices"),
-    invoiceSchema,
+    "invoices",
+    invoicesTable,
     syncTimestamp
   );
 }
 
 export async function backfillInvoices(context: StripeSyncContext, invoiceIds: string[]) {
   const missingIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("invoices"),
+    "invoices",
     invoiceIds
   );
   await fetchMissingEntities(missingIds, (id) => context.stripe.invoices.retrieve(id)).then(

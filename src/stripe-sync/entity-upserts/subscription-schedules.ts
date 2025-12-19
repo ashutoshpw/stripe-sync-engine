@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { subscriptionScheduleSchema } from "../../schemas/subscription_schedules";
+import { subscriptionSchedules as subscriptionSchedulesTable } from "../../drizzle-schema/subscription_schedules";
 import { StripeSyncContext } from "../types";
 import { fetchMissingEntities, getUniqueIds } from "../utils";
 import { backfillCustomers } from "./customers";
@@ -18,8 +18,8 @@ export async function upsertSubscriptionSchedules(
 
   const rows = await context.postgresClient.upsertManyWithTimestampProtection(
     subscriptionSchedules,
-    context.postgresClient.getTableName("subscription_schedules"),
-    subscriptionScheduleSchema,
+    "subscription_schedules",
+    subscriptionSchedulesTable,
     syncTimestamp
   );
 
@@ -31,7 +31,7 @@ export async function backfillSubscriptionSchedules(
   subscriptionIds: string[]
 ) {
   const missingSubscriptionIds = await context.postgresClient.findMissingEntries(
-    context.postgresClient.getTableName("subscription_schedules"),
+    "subscription_schedules",
     subscriptionIds
   );
 
