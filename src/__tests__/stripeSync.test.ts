@@ -683,6 +683,53 @@ describe("StripeSync table prefix functionality", () => {
     const event = createStripeEvent("charge.succeeded", charge);
     const { stripeSync, stripeMock } = setupSync({ tablePrefix: "billing" });
 
+    // Create the prefixed table since migrations only create unprefixed tables
+    const db = pgMem.getDb();
+    db.public.none(`
+      CREATE TABLE IF NOT EXISTS "stripe"."billing_charges" (
+        id text primary key,
+        object text,
+        paid boolean,
+        "order" text,
+        amount bigint,
+        review text,
+        source jsonb,
+        status text,
+        created integer,
+        dispute text,
+        invoice text,
+        outcome jsonb,
+        refunds jsonb,
+        updated integer,
+        captured boolean,
+        currency text,
+        customer text,
+        livemode boolean,
+        metadata jsonb,
+        refunded boolean,
+        shipping jsonb,
+        application text,
+        description text,
+        destination text,
+        failure_code text,
+        on_behalf_of text,
+        fraud_details jsonb,
+        receipt_email text,
+        payment_intent text,
+        receipt_number text,
+        transfer_group text,
+        amount_refunded bigint,
+        application_fee text,
+        failure_message text,
+        source_transfer text,
+        balance_transaction text,
+        statement_descriptor text,
+        payment_method_details jsonb,
+        updated_at timestamptz default timezone('utc'::text, now()) not null,
+        last_synced_at timestamptz
+      );
+    `);
+
     stripeMock.webhooks.constructEventAsync.mockResolvedValue(event);
 
     await stripeSync.processWebhook("payload", "sig");

@@ -1,7 +1,5 @@
 # Stripe Sync Engine
 
-Forked from https://github.com/supabase/stripe-sync-engine.
-
 [![Test](https://github.com/ashutoshpw/stripe-sync-engine/actions/workflows/test.yml/badge.svg)](https://github.com/ashutoshpw/stripe-sync-engine/actions/workflows/test.yml)
 
 A TypeScript library to synchronize Stripe data into a PostgreSQL database, designed for use in Node.js backends and serverless environments.
@@ -95,18 +93,6 @@ await runMigrations({
 | `migrationTableName` | string | Name of the table used to track migrations (default: `stripe_migrations`)                                            |
 | `ssl`                | object | SSL connection options                                                                                               |
 | `logger`             | Logger | Logger instance (pino)                                                                                               |
-
-## Breaking Changes
-
-### Migration Table Rename
-
-Starting from this version, the migration tracking table has been renamed from `migrations` to `stripe_migrations` to avoid conflicts with your application's own migrations table.
-
-**Existing users must rename their migrations table before upgrading:**
-
-```sql
-ALTER TABLE "stripe"."migrations" RENAME TO "stripe_migrations";
-```
 
 ## Backfilling and Syncing Data
 

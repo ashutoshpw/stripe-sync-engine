@@ -221,8 +221,8 @@ export class PostgresClient {
           .map((x) => `"${x}" = EXCLUDED."${x}"`)
           .join(",")},
         last_synced_at = :last_synced_at
-      WHERE "${table}"."last_synced_at" IS NULL 
-         OR "${table}"."last_synced_at" < :last_synced_at;`;
+      WHERE "${schema}"."${table}"."last_synced_at" IS NULL
+         OR "${schema}"."${table}"."last_synced_at" < :last_synced_at;`;
   };
 
   /**
