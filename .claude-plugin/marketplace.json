@@ -1,0 +1,38 @@
+{
+  "name": "stripe-sync-engine",
+  "owner": {
+    "name": "Ashutosh Kumar",
+    "url": "https://github.com/ashutoshpw"
+  },
+  "metadata": {
+    "description": "Sync Stripe data to PostgreSQL in real-time with automatic schema management, webhook processing, and backfill support",
+    "version": "1.0.0",
+    "repository": "https://github.com/ashutoshpw/stripe-sync-engine"
+  },
+  "plugins": [
+    {
+      "type": "skill",
+      "path": "skills/setup/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/migrations/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/webhook/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/backfill/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/query/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/troubleshooting/SKILL.md"
+    }
+  ]
+}
