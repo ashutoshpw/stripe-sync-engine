@@ -33,6 +33,10 @@
     {
       "type": "skill",
       "path": "skills/troubleshooting/SKILL.md"
+    },
+    {
+      "type": "skill",
+      "path": "skills/minimal/SKILL.md"
     }
   ]
 }
